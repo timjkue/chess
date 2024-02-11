@@ -1,0 +1,51 @@
+.tile {
+    display: grid;
+    place-content: center;
+    width: 10vmin;
+    height: 10vmin;
+}
+
+.normal-white-tile {
+    background-color: #b09480;
+}
+
+.move-white-tile {
+    background-color: #68a933;
+}
+
+.special-move-white-tile {
+    background-color: #b14399;
+}
+
+.attack-white-tile {
+    background-color: #c04333;
+}
+
+.normal-black-tile {
+    background-color: #411b00;
+}
+
+.move-black-tile {
+    background-color: #357600;
+}
+
+.special-move-black-tile {
+    background-color: #7e1066;
+}
+
+.attack-black-tile {
+    background-color: #8d1000;
+}
+
+.tile .chess-piece {
+    width: 8vmin;
+    height: 8vmin;
+}
+
+.tile .chess-piece:hover {
+    cursor: grab;
+}
+
+.tile .chess-piece:active {
+    cursor: grabbing;
+}
