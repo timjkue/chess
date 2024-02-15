@@ -93,9 +93,11 @@ function initialize(): PieceMoves[][] {
 
 export default class Moves{
 
-    generateAllLegalMoves(chessboard: ChessboardState, color: PieceColor): PieceMoves[][] | boolean {
+    generateAllLegalMoves(board: ChessboardState): PieceMoves[][] | boolean {
         let pieceMoves: PieceMoves[][] = initialize();
         let kingPos: Position = {x: 0, y: 0};
+        let chessboard: ChessboardState = { ...board };
+        let color: PieceColor = chessboard.color;
         
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
@@ -127,9 +129,77 @@ export default class Moves{
         if(check){
             return this.isKingInCkeck(kingPos, {type: PieceType.KING, color: color}, kingPos, kingPos, chessboard);
         }
-        console.log(pieceMoves);
 
         return pieceMoves;
+    }
+
+    move(pos1: Position, pos2: Position, chessboard: ChessboardState, moves?: PieceMoves[][]): ChessboardState | null {
+        // Check if the starting position has a piece
+        const piece: Piece | null = chessboard.board[pos1.x][pos1.y];
+        if (!piece) return null; // If no piece found, return null
+    
+        // Create a copy of the chessboard state to modify
+        const updatedPieces: ChessboardState = { ...chessboard };
+    
+        // Check if the move is valid
+        if (moves && !moves[pos1.x][pos1.y].moves?.some(move => move.x === pos2.x && move.y === pos2.y))
+            return null; // If move is not valid, return null
+    
+        // Update en passant
+        updatedPieces.enPassant = null;
+    
+        // Update piece details
+        const updatedPiece: Piece = { ...piece };
+    
+        // Pawn specific logic
+        if (updatedPiece.type === PieceType.PAWN) {
+            if ((pos1.y === 1 && pos2.y === 3) || (pos1.y === 6 && pos2.y === 4)) {
+                updatedPieces.enPassant = { x: pos2.x, y: pos2.y === 3 ? 2 : 5 };
+            } else if (pos1.x !== pos2.x && updatedPieces.board[pos2.x][pos2.y] === null) {
+                updatedPieces.board[pos2.x][pos2.y === 2 ? 3 : 4] = null;
+            }
+            // Promotion logic
+            if (pos2.y === 7 - updatedPiece.color * 7) {
+                updatedPiece.type = PieceType.QUEEN;
+            }
+        }
+    
+        // King specific logic
+        if (updatedPiece.type === PieceType.KING) {
+            // Update castling rights
+            updatedPieces.castling[updatedPiece.color * 2] = false;
+            updatedPieces.castling[updatedPiece.color * 2 + 1] = false;
+    
+            // Castling move
+            if (pos1.x + 2 === pos2.x) {
+                this.performCastlingMove(updatedPieces, pos2.y, 7, 5);
+            } else if (pos1.x - 2 === pos2.x) {
+                this.performCastlingMove(updatedPieces, pos2.y, 0, 3);
+            }
+        }
+    
+        // Rook specific logic
+        if (updatedPiece.type === PieceType.ROOK && (pos1.x === 0 || pos1.x === 7) && (pos1.y === 0 || pos1.y === 7)) {
+            updatedPieces.castling[(pos1.y / 7 * 2) + 1 - (pos1.x / 7)] = false;
+        }
+    
+        // Move the piece
+        updatedPieces.board[pos1.x][pos1.y] = null;
+        updatedPieces.board[pos2.x][pos2.y] = updatedPiece;
+    
+        // Switch player turn and update full move counter
+        updatedPieces.color = updatedPieces.color === PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
+        if (updatedPieces.color === PieceColor.WHITE) {
+            updatedPieces.fullMove++;
+        }
+    
+        return updatedPieces;
+    }
+    
+    private performCastlingMove(updatedPieces: ChessboardState, y: number, rookX: number, kingX: number) {
+        const tempPiece: Piece | null = updatedPieces.board[rookX][y];
+        updatedPieces.board[rookX][y] = null;
+        updatedPieces.board[kingX][y] = tempPiece;
     }
 
     private generateLegalMovesForPiece(piece: Piece, pos: Position, chessboard: ChessboardState, kingPos: Position): Position[] {

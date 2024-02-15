@@ -24,6 +24,7 @@ export enum TileColor{
 }
 
 interface Props {
+    elementKey: string;
     number: number;
     tileColor: TileColor;
     type: PieceType | undefined;
@@ -33,7 +34,7 @@ interface Props {
 const images = [pawn_w, knight_w, bishop_w, rook_w, queen_w, king_w, pawn_b, knight_b, bishop_b, rook_b, queen_b, king_b];
 
 
-export default function Tile({ number, tileColor, type, color }: Props) {
+export default function Tile({ elementKey, number, tileColor, type, color }: Props) {
     const isEven = number % 2 === 0;
     const imageIndex: number | null = (type !== undefined && color !== undefined) ? (type + color * 6) : null;
 
@@ -76,9 +77,9 @@ export default function Tile({ number, tileColor, type, color }: Props) {
     }
 
     return (
-        <div className={`tile ${cName}`}>
+        <div className={`tile ${cName}`} id={elementKey} >
             {imageIndex !== null && (
-                <img src={images[imageIndex]} className="chess-piece" draggable={false} alt="Chess Piece" />
+                <img src={images[imageIndex]} className="chess-piece" draggable={false} alt="Chess Piece" id={`${color},${type}`} />
             )}
         </div>
     );
